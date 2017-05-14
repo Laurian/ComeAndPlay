@@ -1,0 +1,129 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<style type="text/css">
+  body {
+    padding: 32px;
+  }
+
+  #root {
+    margin: 8px;
+  }
+
+  #root::after {
+    clear: both;
+    display: block;
+    content: '';
+  }
+
+  .item {
+    width: 80px;
+    height: 80px;
+    margin-right: 12px;
+    margin-bottom: 12px;
+    background-size: cover;
+    background-position: center;
+    background-color: silver;
+    border: 1px solid gray;
+    border-radius: 3px;
+    float: left;
+    position: relative;
+    transition: all 0.1s ease;
+    z-index: 1;
+  }
+
+  .item.selected {
+    transform: scale(2);
+    z-index: 2;
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.5.2/superagent.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/masonry/4.2.0/masonry.pkgd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+<script src="client.js"></script>
+<script>
+  
+</script>
+<body>
+  <audio id="eover" style="display: none;" src="eover.mp3" controls preload></audio>
+  <audio id="over" style="display: none;" src="over.mp3" controls preload></audio>
+  
+  <div id="root">
+    <div id="results">
+    </div>
+  </div>
+
+  <script>
+    function resetAllItems() {
+      document
+        .querySelectorAll('.item')
+        .forEach(function(e) {
+          e.setAttribute('class', 'item');
+        });
+    }
+
+    function createThumbnail(root, url) {
+      var div = document.createElement('div');
+      div.setAttribute('class', 'item');
+      div.style = 'background-image:url('+ url +')';
+
+      var hammer = new Hammer(div);
+
+      hammer.on('tap', function(e) {
+		// console.log(e.target);
+		  
+  		document.getElementById('eover').pause();
+  		document.getElementById('eover').currentTime = 0;
+
+		document.getElementById('over').pause();
+		document.getElementById('over').currentTime = 0;
+
+        if (e.target.getAttribute('style').indexOf('ezra') > -1) {
+        	document.getElementById('eover').play();
+        } else { 
+			document.getElementById('over').play();
+		}
+		
+        var selected = document.querySelector('.item.selected');
+        var haveSelected = selected !== null;
+        if (e.tapCount === 1 && e.target !== selected) {
+          resetAllItems();
+          div.setAttribute('class', 'item selected');
+        } else if (e.tapCount === 2) {
+          location.href = "transcript/";
+        }
+      });
+
+      root.appendChild(div);
+    }
+
+    function createRandomThumbnail(root) {
+      return createThumbnail(root, 'http://lorempixel.com/80/80');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var root = document.querySelector('#root');
+      var mason = new Masonry('#results', {
+        columnWidth: 200,
+        itemSelector: '.item',
+        gutter: 12,
+      });
+
+      var hammer = new Hammer(document);
+          hammer.on('tap', resetAllItems);
+
+      tappas
+        .search(location.search.split('&').shift().substring(3))
+        .then(function(results) {
+          results.acasts.forEach(function(ep) {
+            createThumbnail(mason.element, ep.imageApiUrl);
+          });
+          results.channels.forEach(function(sh) {
+            createThumbnail(mason.element, sh.imageApiUrl);
+          });
+        });
+    });
+  </script>
+</body>
